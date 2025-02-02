@@ -1,75 +1,200 @@
-<header>
+# Chemical Compounds Filter
 
-<!--
-  <<< Author notes: Course header >>>
-  Include a 1280×640 image, course title in sentence case, and a concise description in emphasis.
-  In your repository settings: enable template repository, add your 1280×640 social image, auto delete head branches.
-  Add your open source license, GitHub uses MIT license.
--->
+#### Video Demo: [FinalProjectCS50](https://youtu.be/XiaaNvEC2qE)
 
-# Introduction to GitHub
+#### Description:
 
-_Get started using GitHub in less than an hour._
+## Table of contents
+- Introduction
+- Required Files
+- Running the Script Requirements
+- Example Execution
+- project.py
+   - project.py Behavoir
+   - Code project.py
+- test_project.py
+   - test_project.py Behavoir
+   - Code test_project.py
+- Source References
 
-</header>
+## Introduction
+For my Master thesis, I did a screening of 1224 chemical compounds. From this screening I found some interesting compounds that raises the pollen germination in stress conditions and I called them "Hits", but I wasted many time searching this hits in the chemical library data. I have made a program that obtains the position of some interesting compounds from a chemical library, and tries to find their structure and molecular weight. There are some compounds (like 5.H11) that are in the screening but they are not well referenced in the library so its not possible to obtain their structure.
 
-<!--
-  <<< Author notes: Step 1 >>>
-  Choose 3-5 steps for your course.
-  The first step is always the hardest, so pick something easy!
-  Link to docs.github.com for further explanations.
-  Encourage users to open new tabs for steps!
--->
+## Required Files
+1. **Hit.csv**: Contains information about detected compounds, organized with the following columns:
+    - `CNB_plates`: Plate where the compound is located.
+    - `position`: Specific position on the plate.
+    - `Catalog_number`: Catalog number associated with the compound.
 
-## Step 1: Create a branch
+2. **Library.csv**: Contains additional details about compounds, organized with the following columns:
+    - `IDNUMBER`: Unique identifier for the compound.
+    - `fmla_structure`: Chemical structure of the compound.
+    - `mol_weight_structure`: Molecular weight of the compound.
 
-_Welcome to "Introduction to GitHub"! :wave:_
+## Running the Script Requirements
+The script requires a command-line argument specifying the compound to search for. The correct format is `python project.py [compound]`, where `[compound]` must follow the format `Plate.Position` (e.g., `1.A2`).
 
-**What is GitHub?**: GitHub is a collaboration platform that uses _[Git](https://docs.github.com/get-started/quickstart/github-glossary#git)_ for versioning. GitHub is a popular place to share and contribute to [open-source](https://docs.github.com/get-started/quickstart/github-glossary#open-source) software.
-<br>:tv: [Video: What is GitHub?](https://www.youtube.com/watch?v=pBy1zgt0XPc)
+## Example Execution:
+```bash
+python project.py 1.A2
+```
+## Project.py
 
-**What is a repository?**: A _[repository](https://docs.github.com/get-started/quickstart/github-glossary#repository)_ is a project containing files and folders. A repository tracks versions of files and folders. For more information, see "[About repositories](https://docs.github.com/en/repositories/creating-and-managing-repositories/about-repositories)" from GitHub Docs.
+### Program Behavior:
+1. **Main Function:**
+   - It validates the input arguments using `catch_error` and retrieves the compound data using `compound_data`.
 
-**What is a branch?**: A _[branch](https://docs.github.com/en/get-started/quickstart/github-glossary#branch)_ is a parallel version of your repository. By default, your repository has one branch named `main` and it is considered to be the definitive branch. Creating additional branches allows you to copy the `main` branch of your repository and safely make any changes without disrupting the main project. Many people use branches to work on specific features without affecting any other parts of the project.
+2. **`catch_error()` Function:**
+   - Validates the number and format of command-line arguments.
+   - Ensures the input follows the `[Plate].[Position]` format.
+   - Handles errors such as few arguments or too many arguments, printing an appropiate message using `sys.exit`.
+   - Call `compound_identifier(compound)` function to identify the catalog number in `Hit.csv`.
 
-Branches allow you to separate your work from the `main` branch. In other words, everyone's work is safe while you contribute. For more information, see "[About branches](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-branches)".
+3. **`compound_identifier(compound)` Function:**
+   - Try to split the prompt into `plate` and `position` components. If can't do it exits the program using `sys.exit` with a message indicating the wrong format.
+   - Searches for the compound in the `Hit.csv` file by matching the plate and position.
+   - Returns the catalog number if found, or exits the program using `sys.exit` if the compound is not located or `Hit.csv` file is not found.
 
-**What is a profile README?**: A _[profile README](https://docs.github.com/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme)_ is essentially an "About me" section on your GitHub profile where you can share information about yourself with the community on GitHub.com. GitHub shows your profile README at the top of your profile page. For more information, see "[Managing your profile README](https://docs.github.com/en/account-and-profile/setting-up-and-managing-your-github-profile/customizing-your-profile/managing-your-profile-readme)".
+4. **`compound_data(hit)` Function:**
+   - Uses the catalog number (`hit`) to search for compound details in the `Library.csv` file.
+   - Retrieves the compound's ID number, formula structure, and molecular weight or exits the program using `sys.exit` if the `Library.csv` file is not found.
+   - Formats the retrieved data into a readable output for the user.
 
-![profile-readme-example](/images/profile-readme-example.png)
+5. **Output Example:**
+   ```
+   Hit info:
+       ID Number: P7510350036
+       Formula Structure: C20H27NO3
+       Molecular Weight: 329,44309
+   ```
 
-### :keyboard: Activity: Your first branch
+### Code project.py
+```python
+import sys
+import csv
 
-1. Open a new browser tab and navigate to your newly made repository. Then, work on the steps in your second tab while you read the instructions in this tab.
-2. Navigate to the **< > Code** tab in the header menu of your repository.
+def main():
+    hit = catch_error()
+    print(compound_data(hit))
 
-   ![code-tab](/images/code-tab.png)
+def catch_error():
+    if len(sys.argv) == 2:
+        compound = sys.argv[1]
+        if compound_identifier(compound):
+            return compound_identifier(compound)
+        else:
+            sys.exit("Compound not found. Example of good format: python project.py 1.A2")
+    elif len(sys.argv) == 1:
+        sys.exit("Too few command-line arguments. Example of good format: python project.py 1.A2")
+    else:
+        sys.exit("Too many command-line arguments. Example of good format: python project.py 1.A2")
 
-3. Click on the **main** branch drop-down.
+def compound_identifier(compound):
+    try:
+        plate, position = compound.split(".")
+        with open("Hit.csv", "r") as file:
+            reader = csv.DictReader(file, delimiter=";")
+            for row in reader:
+                if row["CNB_plates"] == plate and row["position"] == position:
+                    return row["\ufeffCatalog_number"]
+    except FileNotFoundError:
+        sys.exit("Hit.csv not found")
+    except ValueError:
+        sys.exit("Bad format. Example of good format: python project.py 1.A2")
 
-   ![main-branch-dropdown](/images/main-branch-dropdown.png)
+def compound_data(hit):
+    try:
+        with open("Library.csv", "r") as file:
+            reader = csv.DictReader(file, delimiter=";")
+            for row in reader:
+                if row["\ufeffIDNUMBER"].endswith(hit):
+                    return f"""
+Hit info:
+    ID Number: {row["\ufeffIDNUMBER"]}
+    Formula Structure: {row["fmla_structure"]}
+    Molecular Weight: {row["mol_weight_structure"]}"""
+    except FileNotFoundError:
+        sys.exit("Library.csv not found")
 
-4. In the field, name your branch `my-first-branch`. In this case, the name must be `my-first-branch` to trigger the course workflow.
-5. Click **Create branch: my-first-branch** to create your branch.
+if __name__ == "__main__":
+    main()
+```
+## test_project.py
 
-   ![create-branch-button](/images/create-branch-button.png)
+### test_project.py Behavoir
+1. **`test_sys_argv`:**
+   - Simulates different scenarios for `sys.argv` using `monkeypatch`.
+   - Ensures `catch_error` behaves correctly with valid number of sys.argvs.
 
-   The branch will automatically switch to the one you have just created.
-   The **main** branch drop-down bar will reflect your new branch and display the new branch name.
+2. **`test_Not_in_hit`:**
+   - Verifies that `compound_identifier` returns `None` when a compound is not found in `Hit.csv`.
 
-6. Wait about 20 seconds then refresh this page (the one you're following instructions from). [GitHub Actions](https://docs.github.com/en/actions) will automatically update to the next step.
+3. **`test_Not_in_library`:**
+   - Ensures `compound_identifier` handles cases where the compound is absent in `Library.csv`.
 
-<footer>
+4. **`test_catch_error`:**
+   - Confirms `catch_error` raises `SystemExit` for incorrect prompt formats.
 
-<!--
-  <<< Author notes: Footer >>>
-  Add a link to get support, GitHub status page, code of conduct, license link.
--->
+5. **`test_compound_identifier`:**
+   - Tests that `compound_identifier` correctly identifies catalog numbers for valid inputs.
+   - Ensures it raises `SystemExit` for invalid formats like `4,A6` or `4:A6`.
 
----
+6. **`test_compound_data`:**
+   - Checks that `compound_data` retrieves and formats the correct compound details.
 
-Get help: [Post in our discussion board](https://github.com/orgs/skills/discussions/categories/introduction-to-github) &bull; [Review the GitHub status page](https://www.githubstatus.com/)
+### Code test_project.py
+```python
+import pytest
+import sys
+from project import catch_error, compound_identifier, compound_data
 
-&copy; 2024 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
+def test_sys_argv(monkeypatch):
+    monkeypatch.setattr(sys, "argv", ["project.py", "4.A6"])
+    assert catch_error() == "7210430612"
+    monkeypatch.setattr(sys, "argv", ["project.py"])
+    with pytest.raises(SystemExit):
+        catch_error()
+    monkeypatch.setattr(sys, "argv", ["project.py", "4", "A6"])
+    with pytest.raises(SystemExit):
+        catch_error()
 
-</footer>
+def test_Not_in_hit():
+    assert compound_identifier("5.H18") == None
+    assert compound_identifier("25.H1") == None
+
+def test_Not_in_library():
+    assert compound_identifier("5.H11") == ""
+
+def test_catch_error():
+    with pytest.raises(SystemExit):
+        compound_identifier("4")
+    with pytest.raises(SystemExit):
+        compound_identifier("A6")
+    with pytest.raises(SystemExit):
+        compound_identifier("cat")
+    with pytest.raises(SystemExit):
+        compound_identifier("4 A6")
+
+def test_compound_identifier():
+    assert compound_identifier("4.A6") == "7210430612"
+    assert compound_identifier("6.B5") == "7510350036"
+    with pytest.raises(SystemExit):
+        compound_identifier("4,A6")
+    with pytest.raises(SystemExit):
+        compound_identifier("4:A6")
+def test_compound_data():
+    assert compound_data("7210430612") == """
+Hit info:
+    ID Number: P7210430612
+    Formula Structure: C13H12O5
+    Molecular Weight: 248,23759"""
+
+    assert compound_data("7510350036") == """
+Hit info:
+    ID Number: P7510350036
+    Formula Structure: C20H27NO3
+    Molecular Weight: 329,44309"""
+```
+
+
+## Source References: Reddit for monkeypatch: https://www.reddit.com/r/cs50/comments/18i6af7/pytest_with_sysargv/?rdt=55883
